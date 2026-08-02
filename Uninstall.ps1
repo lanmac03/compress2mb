@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Removes Discord Video Compressor for the current Windows user.
+    Removes Compress2MB for the current Windows user.
 #>
 [CmdletBinding()]
 param(
@@ -17,28 +17,19 @@ $extensions = @(
 )
 
 Write-Host ''
-Write-Host ' Uninstalling Discord Video Compressor' -ForegroundColor White
-Write-Host ' ======================================' -ForegroundColor DarkGray
+Write-Host ' Uninstalling Compress2MB' -ForegroundColor White
+Write-Host ' =========================' -ForegroundColor DarkGray
 
 foreach ($extension in $extensions) {
     $shellKey = "HKCU:\Software\Classes\SystemFileAssociations\$extension\shell"
     Get-ChildItem -Path $shellKey -ErrorAction SilentlyContinue |
-        Where-Object {
-            $_.PSChildName -like 'DiscordVideoCompressor*' -or
-            $_.PSChildName -like 'VideoTo10mb*'
-        } |
+        Where-Object { $_.PSChildName -like 'Compress2MB*' } |
         Remove-Item -Recurse -Force
 }
 
-foreach ($registryKey in @(
-    'HKCU:\Software\Classes\VideoTo10mb.Menu',
-    'HKCU:\Software\Classes\SystemFileAssociations\video\shell\VideoTo10mb',
-    'HKCU:\Software\Classes\SystemFileAssociations\video\ContextMenus\VideoTo10mb',
-    'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DiscordVideoCompressor'
-)) {
-    if (Test-Path $registryKey) {
-        Remove-Item $registryKey -Recurse -Force
-    }
+$uninstallRegistryKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Compress2MB'
+if (Test-Path $uninstallRegistryKey) {
+    Remove-Item $uninstallRegistryKey -Recurse -Force
 }
 Write-Host '  Context menu: removed' -ForegroundColor Green
 

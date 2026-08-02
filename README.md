@@ -1,15 +1,13 @@
-# Discord Video Compressor
+# Compress2MB
 
-Right-click a video in Windows Explorer and create an MP4 that fits under a
-specific upload limit. Everything runs locally; videos are never uploaded to a
+Right-click a video in Windows Explorer and create an MP4 that fits under any
+target file size. Everything runs locally; videos are never uploaded to a
 third-party service.
 
-The default menu matches Discord's current limits:
+The default menu stays simple:
 
-- 10 MB - Discord Free
-- 50 MB - Nitro Basic
-- 500 MB - Nitro
-- Custom size - any target from 1 to 2000 MB
+- Compress to 10 MB
+- Compress to custom size - any target from 1 to 2000 MB
 
 ## Install
 
@@ -21,7 +19,7 @@ The default menu matches Discord's current limits:
 No administrator rights are required. The installer copies the application to:
 
 ```text
-%LOCALAPPDATA%\Programs\DiscordVideoCompressor
+%LOCALAPPDATA%\Programs\Compress2MB
 ```
 
 The downloaded ZIP can be deleted after installation. Running a newer
@@ -38,11 +36,11 @@ leave Explorer running until your next sign-in.
 
 ## Uninstall
 
-Remove **Discord Video Compressor** from Windows Settings under **Installed
+Remove **Compress2MB** from Windows Settings under **Installed
 apps**, or run:
 
 ```text
-%LOCALAPPDATA%\Programs\DiscordVideoCompressor\Uninstall.cmd
+%LOCALAPPDATA%\Programs\Compress2MB\Uninstall.cmd
 ```
 
 Uninstalling removes the context-menu entries, downloaded FFmpeg binaries, and
@@ -53,8 +51,8 @@ installed application files.
 After installation:
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DiscordVideoCompressor\VideoTo10mb.ps1" -Path "C:\clips\raid.mkv"
-& "$env:LOCALAPPDATA\Programs\DiscordVideoCompressor\VideoTo10mb.ps1" -Path "C:\clips\raid.mkv" -TargetMB 50
+& "$env:LOCALAPPDATA\Programs\Compress2MB\Compress2MB.ps1" -Path "C:\clips\raid.mkv"
+& "$env:LOCALAPPDATA\Programs\Compress2MB\Compress2MB.ps1" -Path "C:\clips\raid.mkv" -TargetMB 50
 ```
 
 Output is written beside the input as `<name>-10MB.mp4`. The original file is
@@ -72,8 +70,8 @@ never modified.
 
 The script calculates a bitrate budget from the target size and video duration,
 then selects the highest resolution and frame rate that fit its quality floor.
-It uses two-pass x264 encoding with AAC audio and writes a fast-start MP4 that
-plays inline in Discord.
+It uses two-pass x264 encoding with AAC audio and writes a fast-start MP4 for
+broad playback compatibility.
 
 If the first encode exceeds the target, the second pass is repeated at a
 corrected bitrate up to two more times. Short clips can retain their source

@@ -2,7 +2,7 @@
 
 ## FFmpeg
 
-Discord Video Compressor invokes FFmpeg as a separate program for video and
+Compress2MB invokes FFmpeg as a separate program for video and
 audio processing. FFmpeg is not part of this repository and is downloaded by
 the installer from the Windows builds maintained by gyan.dev.
 

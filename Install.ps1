@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Installs Discord Video Compressor for the current Windows user.
+    Installs Compress2MB for the current Windows user.
 
 .DESCRIPTION
     Copies the application to a stable LocalAppData folder, downloads FFmpeg
@@ -10,19 +10,19 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1, 2000)]
-    [double[]] $Sizes = @(10, 50, 500),
+    [double[]] $Sizes = @(10),
     [switch] $NoCustomSize,
     [switch] $NoDownload,
     [switch] $NoExplorerRestart,
-    [string] $InstallDirectory = (Join-Path $env:LOCALAPPDATA 'Programs\DiscordVideoCompressor')
+    [string] $InstallDirectory = (Join-Path $env:LOCALAPPDATA 'Programs\Compress2MB')
 )
 
 $ErrorActionPreference = 'Stop'
 
-$applicationName = 'Discord Video Compressor'
+$applicationName = 'Compress2MB'
 $applicationVersion = '1.0.0'
-$registryVerbPrefix = 'DiscordVideoCompressor'
-$installedScript = Join-Path $InstallDirectory 'VideoTo10mb.ps1'
+$registryVerbPrefix = 'Compress2MB'
+$installedScript = Join-Path $InstallDirectory 'Compress2MB.ps1'
 $installedBinDirectory = Join-Path $InstallDirectory 'bin'
 $extensions = @(
     '.mp4', '.mkv', '.mov', '.avi', '.webm', '.m4v', '.wmv', '.flv',
@@ -67,30 +67,17 @@ function Remove-ExistingContextMenuEntries {
     foreach ($extension in $extensions) {
         $shellKey = "HKCU:\Software\Classes\SystemFileAssociations\$extension\shell"
         Get-ChildItem -Path $shellKey -ErrorAction SilentlyContinue |
-            Where-Object {
-                $_.PSChildName -like "$registryVerbPrefix*" -or
-                $_.PSChildName -like 'VideoTo10mb*'
-            } |
+            Where-Object { $_.PSChildName -like "$registryVerbPrefix*" } |
             Remove-Item -Recurse -Force
-    }
-
-    foreach ($staleKey in @(
-        'HKCU:\Software\Classes\VideoTo10mb.Menu',
-        'HKCU:\Software\Classes\SystemFileAssociations\video\shell\VideoTo10mb',
-        'HKCU:\Software\Classes\SystemFileAssociations\video\ContextMenus\VideoTo10mb'
-    )) {
-        if (Test-Path $staleKey) {
-            Remove-Item $staleKey -Recurse -Force
-        }
     }
 }
 
 Write-Host ''
 Write-Host " Installing $applicationName" -ForegroundColor White
-Write-Host ' ==============================' -ForegroundColor DarkGray
+Write-Host ' =====================' -ForegroundColor DarkGray
 
 New-Item -ItemType Directory -Path $InstallDirectory -Force | Out-Null
-foreach ($applicationFile in @('VideoTo10mb.ps1', 'Uninstall.ps1', 'Uninstall.cmd')) {
+foreach ($applicationFile in @('Compress2MB.ps1', 'Uninstall.ps1', 'Uninstall.cmd')) {
     Copy-ApplicationFile $applicationFile
 }
 Write-Host "  Files:  $InstallDirectory" -ForegroundColor Green
@@ -112,7 +99,7 @@ else {
     Write-Host '  FFmpeg: downloading the current essentials build...' -ForegroundColor Cyan
 
     $downloadUrl = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip'
-    $temporaryName = 'discord-video-compressor-' + [Guid]::NewGuid().ToString('N')
+    $temporaryName = 'compress2mb-' + [Guid]::NewGuid().ToString('N')
     $temporaryZip = Join-Path ([IO.Path]::GetTempPath()) "$temporaryName.zip"
     $temporaryDirectory = Join-Path ([IO.Path]::GetTempPath()) $temporaryName
 
@@ -147,11 +134,6 @@ else {
 
 Remove-ExistingContextMenuEntries
 
-$presetLabels = @{
-    10 = 'Compress to 10 MB (Discord Free)'
-    50 = 'Compress to 50 MB (Nitro Basic)'
-    500 = 'Compress to 500 MB (Nitro)'
-}
 foreach ($extension in $extensions) {
     $shellKey = "HKCU:\Software\Classes\SystemFileAssociations\$extension\shell"
     $verbIndex = 0
@@ -159,10 +141,6 @@ foreach ($extension in $extensions) {
     foreach ($size in $Sizes) {
         $verbIndex++
         $label = "Compress to $size MB"
-        $integerSize = [int]$size
-        if ($size -eq $integerSize -and $presetLabels.ContainsKey($integerSize)) {
-            $label = $presetLabels[$integerSize]
-        }
 
         $verbKey = "$shellKey\$registryVerbPrefix{0:D2}" -f $verbIndex
         New-Item -Path $verbKey -Force | Out-Null
@@ -189,11 +167,11 @@ foreach ($extension in $extensions) {
     }
 }
 
-$uninstallRegistryKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DiscordVideoCompressor'
+$uninstallRegistryKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Compress2MB'
 New-Item -Path $uninstallRegistryKey -Force | Out-Null
 New-ItemProperty -Path $uninstallRegistryKey -Name 'DisplayName' -Value $applicationName -PropertyType String -Force | Out-Null
 New-ItemProperty -Path $uninstallRegistryKey -Name 'DisplayVersion' -Value $applicationVersion -PropertyType String -Force | Out-Null
-New-ItemProperty -Path $uninstallRegistryKey -Name 'Publisher' -Value 'lanmac03' -PropertyType String -Force | Out-Null
+New-ItemProperty -Path $uninstallRegistryKey -Name 'Publisher' -Value 'Allan MacDonald' -PropertyType String -Force | Out-Null
 New-ItemProperty -Path $uninstallRegistryKey -Name 'InstallLocation' -Value $InstallDirectory -PropertyType String -Force | Out-Null
 $uninstallCommand = '"{0}"' -f (Join-Path $InstallDirectory 'Uninstall.cmd')
 New-ItemProperty -Path $uninstallRegistryKey -Name 'UninstallString' -Value $uninstallCommand -PropertyType String -Force | Out-Null

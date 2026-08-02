@@ -1,23 +1,23 @@
 <#
 .SYNOPSIS
-    Compress a video to fit under a target file size (default 10 MB for Discord).
+    Compress a video to fit under a target file size.
 
 .DESCRIPTION
     Computes the exact bitrate needed to hit the target size, then picks the
-    highest resolution / framerate combination that still has enough bits per
-    pixel to look acceptable. Encodes two-pass x264 + AAC into a faststart MP4
-    so Discord plays it inline.
+    highest resolution and frame-rate combination that still has enough bits
+    per pixel to look acceptable. Encodes two-pass x264 and AAC into a
+    fast-start MP4 for broad playback compatibility.
 
 .EXAMPLE
-    .\VideoTo10mb.ps1 -Path "C:\clips\raid.mkv"
-    .\VideoTo10mb.ps1 -Path "C:\clips\raid.mkv" -TargetMB 50
+    .\Compress2MB.ps1 -Path "C:\clips\raid.mkv"
+    .\Compress2MB.ps1 -Path "C:\clips\raid.mkv" -TargetMB 50
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [string] $Path,
 
-    # Target size in megabytes. Discord: 10 free, 50 Nitro Basic, 500 Nitro.
+    # Target size in megabytes.
     [ValidateRange(1, 2000)]
     [double] $TargetMB = 10,
 
@@ -38,12 +38,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# ---------------------------------------------------------------- helpers ---
+# Console output
 
-function Write-Step   { param([string]$m) Write-Host "  $m" -ForegroundColor Cyan }
-function Write-Info   { param([string]$m) Write-Host "  $m" -ForegroundColor Gray }
-function Write-Good   { param([string]$m) Write-Host "  $m" -ForegroundColor Green }
-function Write-Bad    { param([string]$m) Write-Host "  $m" -ForegroundColor Red }
+function Write-Step { param([string] $Message) Write-Host "  $Message" -ForegroundColor Cyan }
+function Write-Info { param([string] $Message) Write-Host "  $Message" -ForegroundColor Gray }
+function Write-Good { param([string] $Message) Write-Host "  $Message" -ForegroundColor Green }
+function Write-Bad  { param([string] $Message) Write-Host "  $Message" -ForegroundColor Red }
 
 function Resolve-Tool {
     param([string] $Name)
@@ -89,11 +89,11 @@ function Read-TargetSize {
     }
 }
 
-# ------------------------------------------------------------------ setup ---
+# Setup
 
 Write-Host ""
-Write-Host " Discord Video Compressor" -ForegroundColor White
-Write-Host " ========================" -ForegroundColor DarkGray
+Write-Host " Compress2MB" -ForegroundColor White
+Write-Host " ===========" -ForegroundColor DarkGray
 
 $exitCode = 0
 
@@ -129,7 +129,7 @@ try {
         return
     }
 
-    # --------------------------------------------------------- probe input ---
+    # Probe input
 
     $probeJson = & $ffprobe -v quiet -print_format json -show_format -show_streams -- "$($src.FullName)"
     if ($LASTEXITCODE -ne 0 -or -not $probeJson) {
@@ -159,7 +159,7 @@ try {
 
     Write-Info ("Source: {0}x{1} @ {2:N0} fps, {3:N1}s{4}" -f $srcW, $srcH, $srcFps, $duration, $(if ($hasAudio) { ", audio" } else { ", no audio" }))
 
-    # ------------------------------------------------------ bitrate budget ---
+    # Calculate the bitrate budget
 
     # 4% headroom for the MP4 container overhead and rate-control overshoot.
     $totalKbps = ($targetBytes * 8 / 1000) / $duration * 0.96
@@ -186,7 +186,7 @@ try {
         Write-Info "Budget exceeds source bitrate; capping (result will be well under target)."
     }
 
-    # --------------------------------------------- resolution / fps ladder ---
+    # Choose a resolution and frame rate
 
     # Ordered best-to-worst. Heights refer to the SHORT side, so portrait
     # video steps down correctly too. Resolution is protected before fps
@@ -238,7 +238,7 @@ try {
     if (-not $scaleChanged) { $plan = "{0}p (unchanged)" -f $chosen.H }
     Write-Step ("Plan  : {0}, {1:N0} fps, {2:N0} kbps video{3}" -f $plan, $chosen.Fps, $videoKbps, $(if ($hasAudio) { ", $audioKbps kbps audio" } else { "" }))
 
-    # ---------------------------------------------------------- build args ---
+    # Build FFmpeg arguments
 
     $filters = @()
     if ($fpsChanged)   { $filters += ("fps={0}" -f [math]::Round($chosen.Fps, 3)) }
@@ -266,7 +266,7 @@ try {
     $commonV  = @('-map', '0:v:0', '-vf', $vf, '-c:v', 'libx264', '-preset', $Preset,
                   '-profile:v', 'high', '-level', '4.1', '-pix_fmt', 'yuv420p')
 
-    # ------------------------------------------------------------- encode ---
+    # Encode
 
     Write-Step "Pass 1 of 2 (analysing)..."
     $p1 = $commonIn + $commonV + @('-b:v', "$([int]$videoKbps)k", '-pass', '1',
@@ -307,7 +307,7 @@ try {
         if ($bitrate -lt 50) { $bitrate = 50 }
     }
 
-    # ------------------------------------------------------------- report ---
+    # Report the result
 
     $final = Get-Item -LiteralPath $outPath
     $pct = 100 - ($final.Length / $src.Length * 100)
