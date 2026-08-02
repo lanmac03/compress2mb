@@ -1,0 +1,6 @@
+# Downloaded by Install.ps1.
+bin/
+
+# PowerShell and FFmpeg temporary files.
+*.log
+*.log.mbtree
