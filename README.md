@@ -11,7 +11,7 @@ The default menu stays simple:
 
 ## Install
 
-1. Download and extract the latest release ZIP.
+1. Choose **Code** -> **Download ZIP** on GitHub, then extract it.
 2. Double-click `Install.cmd`.
 3. Wait for FFmpeg to download on the first installation.
 4. Right-click a video and choose **Show more options**.
