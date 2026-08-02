@@ -4,6 +4,8 @@ Right-click a video in Windows Explorer and create an MP4 that fits under any
 target file size. Everything runs locally; videos are never uploaded to a
 third-party service.
 
+![Compress2MB demo](./compress2mb_demo.webp)
+
 The default menu stays simple:
 
 - Compress to 10 MB
